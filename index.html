@@ -77,10 +77,9 @@ let container, stats;
                     };
 
                     reader.readAsDataURL(userSTLfile.files[0]);
-                    documentPath = userSTLfile.value.replace("C:\\", "");
+                    documentPath = userSTLfile.value.replace("C:\\fakepath\\", "");
 
-                    const path = documentPath.replace("C:\\", "");
-                    console.log(path);
+                    
                 }
                 const loader = new STLLoader();
 				loader.load(documentPath, function ( geometry ) {
