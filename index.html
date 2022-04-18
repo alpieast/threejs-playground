@@ -26,6 +26,7 @@
 
             import * as THREE from 'three';
             import {STLLoader} from '/node_modules/three/examples/jsm/loaders/STLLoader.js';
+            import {STLExporter} from '/node_modules/three/examples/jsm/exporters/STLExporter.js';
             import Stats from '/node_modules/three/examples/jsm/libs/stats.module.js';
 let container, stats;
 
@@ -39,15 +40,14 @@ let container, stats;
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 15 );
-				camera.position.set( 1, 2, - 3 );
-				camera.lookAt( 0, 1, 0 );
+				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 0.01, 200 );
+				camera.position.set( 0, 0, 0 );
+				camera.lookAt( 0, 0, 0 );
 
 				cameraTarget = new THREE.Vector3( 0, - 0.25, 0 );
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0xa0a0a0 );
-				scene.fog = new THREE.Fog( 0xa0a0a0, 10, 50 );
 
 				const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 				hemiLight.position.set( 0, 20, 0 );
@@ -79,19 +79,53 @@ let container, stats;
                     var contents = event.target.result;
 
                     var geometry = new STLLoader().parse( contents );
+                    geometry.center();
                     var material = new THREE.MeshPhongMaterial();
                     var mesh = new THREE.Mesh( geometry, material );
+                    
+                    let box = new THREE.Box3()
+
+                    
                     
                     mesh.position.set( 0, 1, 0 );
                     mesh.castShadow = true;
                     mesh.receiveShadow = true;
                     mesh.geometry.computeVertexNormals();
+                    mesh.geometry.computeBoundingBox();
 
-                    
-                    console.log(mesh.position);
+                    const size = box.copy(mesh.geometry.boundingBox).getSize(mesh.scale)
+                    camera.position.set(0,-size.y*4,0)
+
+                    console.log(size);
                     //camera.lookAt(mesh.position);
                     
                     scene.add( mesh );
+
+                    let exporter = new STLExporter();
+
+                    function exportASCII() {
+                        const result = exporter.parse( mesh );
+                        saveString( result, 'box.stl' );
+                        
+                    }
+                    
+                    const link = document.createElement( 'a' );
+			        link.style.display = 'none';
+			        document.body.appendChild( link );
+
+                    function save( blob, filename ) {
+
+                        link.href = URL.createObjectURL( blob );
+                        link.download = filename;
+                        link.click();
+
+                    }
+
+                    function saveString( text, filename ) {
+
+                        save( new Blob( [ text ], { type: 'text/plain' } ), filename );
+
+                    }
 
                     document.getElementById('rotateOnXnegative').addEventListener('click', rotateOnXnegative);
                     document.getElementById('rotateOnXpositive').addEventListener('click', rotateOnXpositive);
@@ -103,18 +137,16 @@ let container, stats;
                     document.getElementById('cameraZoomIn').addEventListener('click', cameraZoomIn);
                     document.getElementById('cameraZoomOut').addEventListener('click', cameraZoomOut);
 
-                    
-
-
                     document.getElementById('colorPicker').addEventListener('change', function(event){
                         mesh.material.color.set(event.target.value);
                     });
+
+                    document.getElementById('exportSTL').addEventListener('click', exportASCII);
 
 
                     function rotateOnXnegative() {
                         mesh.rotation.x -= 0.1;
                     }
-
                     function rotateOnXpositive() {
                         mesh.rotation.x += 0.1;
                     }
@@ -133,10 +165,10 @@ let container, stats;
                     }
 
                     function cameraZoomIn() {
-                        camera.position.z += 0.1;
+                        camera.position.y += 1;
                     }
                     function cameraZoomOut() {
-                        camera.position.z -= 0.1;
+                        camera.position.y -= 1;
                     }
 
                 }, false );
@@ -184,10 +216,11 @@ let container, stats;
 			}
 
 			function render() {
-				//camera.lookAt( cameraTarget );
+			    camera.lookAt( cameraTarget );
 				renderer.render( scene, camera );
 			}
 
+            
 
             
             
@@ -209,6 +242,8 @@ let container, stats;
             <button id="cameraZoomOut">Zoom Out</button>
 
             <input id="colorPicker" name="Color Picker" type="color"/>
+
+            <button id="exportSTL">Export STL</button>
 
 	</body>
 </html>
