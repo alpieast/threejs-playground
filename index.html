@@ -60,46 +60,26 @@ let container, stats;
 
 				plane.receiveShadow = false;
 
-                document.getElementById("userSTLfile").addEventListener('change',loadSTL)
+                var stlinput = document.getElementById("userSTLfile")
 
                 //Load STL file
-                let documentPath;
-                function loadSTL(){
-                    let userSTLfile = document.getElementById("userSTLfile");
+                stlinput.addEventListener( 'change', function( event ) {
+    
+                var file = this.files[ 0 ];
+                var reader = new FileReader();
+                
+                reader.addEventListener( 'load', function ( event ) {
+
+                    var contents = event.target.result;
+
+                    var geometry = new STLLoader().parse( contents );
+                    var material = new THREE.MeshStandardMaterial();
+                    var mesh = new THREE.Mesh( geometry, material );
                     
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
                     
-                    if (userSTLfile.files && userSTLfile.files[0]) {
-                    var reader = new FileReader();
-
-                    reader.onload = function (e) {
-                        console.log(reader.result + '->' + typeof reader.result)
-                        documentPath = reader.result
-                        var thisImage = reader.result;
-                        localStorage.setItem("stlData", thisImage);
-                    };
-
-                    reader.readAsDataURL(userSTLfile.files[0]);
-
-                    
-
-                    
-                }
-                const loader = new STLLoader();
-				loader.load(documentPath, function ( geometry ) {
-
-					const material = new THREE.MeshPhongMaterial( { color: 0xff5533, specular: 0x111111, shininess: 200 } );
-					const mesh = new THREE.Mesh( geometry, material );
-
-					mesh.position.set( 0, 0, 0 );
-					mesh.rotation.set( 0, 0, 0 );
-					mesh.scale.set( 0.5, 0.5, 0.5 );
-
-					mesh.castShadow = true;
-					mesh.receiveShadow = true;
-
-					scene.add( mesh );
-
-                    // Turn Functions
+                    scene.add( mesh );
 
                     document.getElementById('rotateOnXnegative').addEventListener('click', rotateOnXnegative);
                     document.getElementById('rotateOnXpositive').addEventListener('click', rotateOnXpositive);
@@ -129,8 +109,19 @@ let container, stats;
                         mesh.rotation.z += 0.1;
                     }
 
-				} );
+                }, false );
+                
+                if ( reader.readAsBinaryString !== undefined ) {
+
+                    reader.readAsBinaryString( file );
+
+                } else {
+
+                    reader.readAsArrayBuffer( file );
+
                 }
+                
+                 } );
                 
 
 				// ASCII file
