@@ -73,11 +73,14 @@ let container, stats;
 
                     reader.onload = function (e) {
                         console.log(reader.result + '->' + typeof reader.result)
+                        documentPath = reader.result
                         var thisImage = reader.result;
                         localStorage.setItem("stlData", thisImage);
                     };
 
                     reader.readAsDataURL(userSTLfile.files[0]);
+
+                    
 
                     
                 }
