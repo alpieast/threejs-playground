@@ -65,7 +65,6 @@ let container, stats;
                 //Load STL file
                 let documentPath;
                 function loadSTL(){
-                    var image = document.createElement('img');
                     let userSTLfile = document.getElementById("userSTLfile");
                     
                     
@@ -73,11 +72,12 @@ let container, stats;
                     var reader = new FileReader();
 
                     reader.onload = function (e) {
-                        image.src = e.target.result;
+                        console.log(reader.result + '->' + typeof reader.result)
+                        var thisImage = reader.result;
+                        localStorage.setItem("stlData", thisImage);
                     };
 
                     reader.readAsDataURL(userSTLfile.files[0]);
-                    documentPath = userSTLfile.value.replace("C:\\fakepath\\", "");
 
                     
                 }
