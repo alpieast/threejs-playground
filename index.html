@@ -40,29 +40,35 @@ let container, stats;
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 15 );
-				camera.position.set( 3, 0.15, 3 );
+				camera.position.set( 1, 2, - 3 );
+				camera.lookAt( 0, 1, 0 );
 
 				cameraTarget = new THREE.Vector3( 0, - 0.25, 0 );
 
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color( 0x72645b );
-				scene.fog = new THREE.Fog( 0x72645b, 2, 15 );
+				scene.background = new THREE.Color( 0xa0a0a0 );
+				scene.fog = new THREE.Fog( 0xa0a0a0, 10, 50 );
 
-				// Ground
+				const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+				hemiLight.position.set( 0, 20, 0 );
+				scene.add( hemiLight );
 
-				const plane = new THREE.Mesh(
-					new THREE.PlaneGeometry( 40, 40 ),
-					new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } )
-				);
-				plane.rotation.x = - Math.PI / 2;
-				plane.position.y = - 0.5;
-				scene.add( plane );
+				const dirLight = new THREE.DirectionalLight( 0xffffff );
+				dirLight.position.set( - 3, 10, - 10 );
+				dirLight.castShadow = true;
+				dirLight.shadow.camera.top = 2;
+				dirLight.shadow.camera.bottom = - 2;
+				dirLight.shadow.camera.left = - 2;
+				dirLight.shadow.camera.right = 2;
+				dirLight.shadow.camera.near = 0.1;
+				dirLight.shadow.camera.far = 40;
+				scene.add( dirLight );
 
-				plane.receiveShadow = false;
-
-                var stlinput = document.getElementById("userSTLfile")
+                
 
                 //Load STL file
+
+                var stlinput = document.getElementById("userSTLfile")
                 stlinput.addEventListener( 'change', function( event ) {
     
                 var file = this.files[ 0 ];
@@ -70,19 +76,20 @@ let container, stats;
                 
                 reader.addEventListener( 'load', function ( event ) {
 
-                    var img = new THREE.MeshBasicMaterial({ //CHANGED to MeshBasicMaterial
-                        map:THREE.ImageUtils.loadTexture('image1.png')
-                    });
-                    img.map.needsUpdate = true;
-
                     var contents = event.target.result;
 
                     var geometry = new STLLoader().parse( contents );
-                    var material = new THREE.MeshStandardMaterial();
-                    var mesh = new THREE.Mesh( geometry, img );
+                    var material = new THREE.MeshPhongMaterial();
+                    var mesh = new THREE.Mesh( geometry, material );
                     
+                    mesh.position.set( 0, 1, 0 );
                     mesh.castShadow = true;
                     mesh.receiveShadow = true;
+                    mesh.geometry.computeVertexNormals();
+
+                    
+                    console.log(mesh.position);
+                    //camera.lookAt(mesh.position);
                     
                     scene.add( mesh );
 
@@ -92,6 +99,13 @@ let container, stats;
                     document.getElementById('rotateOnYpositive').addEventListener('click', rotateOnYpositive);
                     document.getElementById('rotateOnZnegative').addEventListener('click', rotateOnZnegative);
                     document.getElementById('rotateOnZpositive').addEventListener('click', rotateOnZpositive);
+
+                    document.getElementById('cameraZoomIn').addEventListener('click', cameraZoomIn);
+                    document.getElementById('cameraZoomOut').addEventListener('click', cameraZoomOut);
+
+                    
+
+
                     document.getElementById('colorPicker').addEventListener('change', function(event){
                         mesh.material.color.set(event.target.value);
                     });
@@ -99,8 +113,8 @@ let container, stats;
 
                     function rotateOnXnegative() {
                         mesh.rotation.x -= 0.1;
-                        material.color.set(0xFF0000);
                     }
+
                     function rotateOnXpositive() {
                         mesh.rotation.x += 0.1;
                     }
@@ -118,6 +132,13 @@ let container, stats;
                         mesh.rotation.z += 0.1;
                     }
 
+                    function cameraZoomIn() {
+                        camera.position.z += 0.1;
+                    }
+                    function cameraZoomOut() {
+                        camera.position.z -= 0.1;
+                    }
+
                 }, false );
                 
                 if ( reader.readAsBinaryString !== undefined ) {
@@ -132,53 +153,20 @@ let container, stats;
                 
                  } );
 
-				
-
 
 				
-				
-
-
-				// Lights
-
-				scene.add( new THREE.HemisphereLight( 0x443333, 0x111122 ) );
-
-				addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
-				addShadowedLight( 0.5, 1, - 1, 0xffaa00, 1 );
 				// renderer
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.outputEncoding = THREE.sRGBEncoding;
-
 				renderer.shadowMap.enabled = true;
-
 				container.appendChild( renderer.domElement );
 				window.addEventListener( 'resize', onWindowResize );
 
 			}
 
-			function addShadowedLight( x, y, z, color, intensity ) {
-
-				const directionalLight = new THREE.DirectionalLight( color, intensity );
-				directionalLight.position.set( x, y, z );
-				scene.add( directionalLight );
-
-				directionalLight.castShadow = true;
-
-				const d = 1;
-				directionalLight.shadow.camera.left = - d;
-				directionalLight.shadow.camera.right = d;
-				directionalLight.shadow.camera.top = d;
-				directionalLight.shadow.camera.bottom = - d;
-
-				directionalLight.shadow.camera.near = 1;
-				directionalLight.shadow.camera.far = 4;
-
-				directionalLight.shadow.bias = - 0.002;
-
-			}
 
 			function onWindowResize() {
 
@@ -196,24 +184,29 @@ let container, stats;
 			}
 
 			function render() {
-				camera.lookAt( cameraTarget );
+				//camera.lookAt( cameraTarget );
 				renderer.render( scene, camera );
 			}
 
+
+            
             
             
         </script>
 
             <input id="userSTLfile" type="file" />
         
-            <button id="rotateOnXnegative">Rotate on X (-)</button>
-            <button id="rotateOnXpositive">Rotate on X (+)</button>
+            <button id="rotateOnXnegative">RotateX (-)</button>
+            <button id="rotateOnXpositive">RotateX (+)</button>
               
-            <button id="rotateOnYnegative">Rotate on Y (-)</button>
-            <button id="rotateOnYpositive">Rotate on Y (+)</button>
+            <button id="rotateOnYnegative">RotateY (-)</button>
+            <button id="rotateOnYpositive">RotateY (+)</button>
 
-            <button id="rotateOnZnegative">Rotate on Z (-)</button>
-            <button id="rotateOnZpositive">Rotate on Z (+)</button>
+            <button id="rotateOnZnegative">RotateZ (-)</button>
+            <button id="rotateOnZpositive">RotateZ (+)</button>
+
+            <button id="cameraZoomIn">Zoom In</button>
+            <button id="cameraZoomOut">Zoom Out</button>
 
             <input id="colorPicker" name="Color Picker" type="color"/>
 
