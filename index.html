@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>tridi.co test case</title>
+		<style>
+			body { margin: 0; }
+		</style>
+	</head>
+	<body>
+       
+
+        <script type="importmap">
+			{
+				"imports": {
+					"three": "../node_modules/three/build/three.module.js"
+                    
+				}
+			}
+		</script>
+
+        
+		<script type="module">
+			// Our Javascript will go here.
+
+
+            import * as THREE from 'three';
+            import {STLLoader} from '/node_modules/three/examples/jsm/loaders/STLLoader.js';
+            import Stats from '/node_modules/three/examples/jsm/libs/stats.module.js';
+let container, stats;
+
+			let camera, cameraTarget, scene, renderer;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 15 );
+				camera.position.set( 3, 0.15, 3 );
+
+				cameraTarget = new THREE.Vector3( 0, - 0.25, 0 );
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x72645b );
+				scene.fog = new THREE.Fog( 0x72645b, 2, 15 );
+
+				// Ground
+
+				const plane = new THREE.Mesh(
+					new THREE.PlaneGeometry( 40, 40 ),
+					new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } )
+				);
+				plane.rotation.x = - Math.PI / 2;
+				plane.position.y = - 0.5;
+				scene.add( plane );
+
+				plane.receiveShadow = false;
+
+                document.getElementById("userSTLfile").addEventListener('change',loadSTL)
+
+                //Load STL file
+                let documentPath;
+                function loadSTL(){
+                    var image = document.createElement('img');
+                    let userSTLfile = document.getElementById("userSTLfile");
+                    
+                    
+                    if (userSTLfile.files && userSTLfile.files[0]) {
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        image.src = e.target.result;
+                    };
+
+                    reader.readAsDataURL(userSTLfile.files[0]);
+                    documentPath = userSTLfile.value.replace("C:\\", "");
+
+                    const path = documentPath.replace("C:\\", "");
+                    console.log(path);
+                }
+                const loader = new STLLoader();
+				loader.load(documentPath, function ( geometry ) {
+
+					const material = new THREE.MeshPhongMaterial( { color: 0xff5533, specular: 0x111111, shininess: 200 } );
+					const mesh = new THREE.Mesh( geometry, material );
+
+					mesh.position.set( 0, 0, 0 );
+					mesh.rotation.set( 0, 0, 0 );
+					mesh.scale.set( 0.5, 0.5, 0.5 );
+
+					mesh.castShadow = true;
+					mesh.receiveShadow = true;
+
+					scene.add( mesh );
+
+                    // Turn Functions
+
+                    document.getElementById('rotateOnXnegative').addEventListener('click', rotateOnXnegative);
+                    document.getElementById('rotateOnXpositive').addEventListener('click', rotateOnXpositive);
+                    document.getElementById('rotateOnYnegative').addEventListener('click', rotateOnYnegative);
+                    document.getElementById('rotateOnYpositive').addEventListener('click', rotateOnYpositive);
+                    document.getElementById('rotateOnZnegative').addEventListener('click', rotateOnZnegative);
+                    document.getElementById('rotateOnZpositive').addEventListener('click', rotateOnZpositive);
+
+
+                    function rotateOnXnegative() {
+                        mesh.rotation.x -= 0.1;
+                    }
+                    function rotateOnXpositive() {
+                        mesh.rotation.x += 0.1;
+                    }
+
+                    function rotateOnYnegative() {
+                        mesh.rotation.y -= 0.1;
+                    }
+                    function rotateOnYpositive() {
+                        mesh.rotation.y += 0.1;
+                    }
+                    function rotateOnZnegative() {
+                        mesh.rotation.z -= 0.1;
+                    }
+                    function rotateOnZpositive() {
+                        mesh.rotation.z += 0.1;
+                    }
+
+				} );
+                }
+                
+
+				// ASCII file
+
+				
+
+
+				
+				
+
+
+				// Lights
+
+				scene.add( new THREE.HemisphereLight( 0x443333, 0x111122 ) );
+
+				addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
+				addShadowedLight( 0.5, 1, - 1, 0xffaa00, 1 );
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.outputEncoding = THREE.sRGBEncoding;
+
+				renderer.shadowMap.enabled = true;
+
+				container.appendChild( renderer.domElement );
+
+				
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function addShadowedLight( x, y, z, color, intensity ) {
+
+				const directionalLight = new THREE.DirectionalLight( color, intensity );
+				directionalLight.position.set( x, y, z );
+				scene.add( directionalLight );
+
+				directionalLight.castShadow = true;
+
+				const d = 1;
+				directionalLight.shadow.camera.left = - d;
+				directionalLight.shadow.camera.right = d;
+				directionalLight.shadow.camera.top = d;
+				directionalLight.shadow.camera.bottom = - d;
+
+				directionalLight.shadow.camera.near = 1;
+				directionalLight.shadow.camera.far = 4;
+
+				directionalLight.shadow.bias = - 0.002;
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+				requestAnimationFrame( animate );
+				render();
+
+			}
+
+			function render() {
+				camera.lookAt( cameraTarget );
+				renderer.render( scene, camera );
+			}
+
+            
+            
+        </script>
+
+            <input id="userSTLfile" type="file" />
+        
+            <button id="rotateOnXnegative">Rotate on X (-)</button>
+            <button id="rotateOnXpositive">Rotate on X (+)</button>
+              
+            <button id="rotateOnYnegative">Rotate on Y (-)</button>
+            <button id="rotateOnYpositive">Rotate on Y (+)</button>
+
+            <button id="rotateOnZnegative">Rotate on Z (-)</button>
+            <button id="rotateOnZpositive">Rotate on Z (+)</button>
+
+	</body>
+</html>
