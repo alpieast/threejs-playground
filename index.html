@@ -70,11 +70,16 @@ let container, stats;
                 
                 reader.addEventListener( 'load', function ( event ) {
 
+                    var img = new THREE.MeshBasicMaterial({ //CHANGED to MeshBasicMaterial
+                        map:THREE.ImageUtils.loadTexture('image1.png')
+                    });
+                    img.map.needsUpdate = true;
+
                     var contents = event.target.result;
 
                     var geometry = new STLLoader().parse( contents );
                     var material = new THREE.MeshStandardMaterial();
-                    var mesh = new THREE.Mesh( geometry, material );
+                    var mesh = new THREE.Mesh( geometry, img );
                     
                     mesh.castShadow = true;
                     mesh.receiveShadow = true;
@@ -87,10 +92,14 @@ let container, stats;
                     document.getElementById('rotateOnYpositive').addEventListener('click', rotateOnYpositive);
                     document.getElementById('rotateOnZnegative').addEventListener('click', rotateOnZnegative);
                     document.getElementById('rotateOnZpositive').addEventListener('click', rotateOnZpositive);
+                    document.getElementById('colorPicker').addEventListener('change', function(event){
+                        mesh.material.color.set(event.target.value);
+                    });
 
 
                     function rotateOnXnegative() {
                         mesh.rotation.x -= 0.1;
+                        material.color.set(0xFF0000);
                     }
                     function rotateOnXpositive() {
                         mesh.rotation.x += 0.1;
@@ -122,9 +131,6 @@ let container, stats;
                 }
                 
                  } );
-                
-
-				// ASCII file
 
 				
 
@@ -149,9 +155,6 @@ let container, stats;
 				renderer.shadowMap.enabled = true;
 
 				container.appendChild( renderer.domElement );
-
-				
-
 				window.addEventListener( 'resize', onWindowResize );
 
 			}
@@ -211,6 +214,8 @@ let container, stats;
 
             <button id="rotateOnZnegative">Rotate on Z (-)</button>
             <button id="rotateOnZpositive">Rotate on Z (+)</button>
+
+            <input id="colorPicker" name="Color Picker" type="color"/>
 
 	</body>
 </html>
