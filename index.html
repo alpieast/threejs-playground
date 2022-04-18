@@ -28,7 +28,8 @@
             import {STLLoader} from '/node_modules/three/examples/jsm/loaders/STLLoader.js';
             import {STLExporter} from '/node_modules/three/examples/jsm/exporters/STLExporter.js';
             import Stats from '/node_modules/three/examples/jsm/libs/stats.module.js';
-let container, stats;
+            
+            let container, stats;
 
 			let camera, cameraTarget, scene, renderer;
 
@@ -40,21 +41,23 @@ let container, stats;
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
+                //Camera
 				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 0.01, 200 );
 				camera.position.set( 0, 0, 0 );
 				camera.lookAt( 0, 0, 0 );
-
 				cameraTarget = new THREE.Vector3( 0, - 0.25, 0 );
 
+                // Scene
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0xa0a0a0 );
 
+                // Lights
 				const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-				hemiLight.position.set( 0, 20, 0 );
+				hemiLight.position.set( 10, 20, 10 );
 				scene.add( hemiLight );
 
-				const dirLight = new THREE.DirectionalLight( 0xffffff );
-				dirLight.position.set( - 3, 10, - 10 );
+				const dirLight = new THREE.DirectionalLight( 0xffffff);
+				dirLight.position.set( 0, 10, 0 );
 				dirLight.castShadow = true;
 				dirLight.shadow.camera.top = 2;
 				dirLight.shadow.camera.bottom = - 2;
@@ -67,26 +70,24 @@ let container, stats;
                 
 
                 //Load STL file
-
                 var stlinput = document.getElementById("userSTLfile")
+                
                 stlinput.addEventListener( 'change', function( event ) {
-    
+                    //if file selected, then load the file
                 var file = this.files[ 0 ];
                 var reader = new FileReader();
-                
-                reader.addEventListener( 'load', function ( event ) {
+                    
 
+                reader.addEventListener( 'load', function ( event ) {
+                    //when file is loaded, create a new mesh with the STL data
                     var contents = event.target.result;
 
                     var geometry = new STLLoader().parse( contents );
                     geometry.center();
-                    var material = new THREE.MeshPhongMaterial();
+                    var material = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 200 } );
                     var mesh = new THREE.Mesh( geometry, material );
-                    
                     let box = new THREE.Box3()
 
-                    
-                    
                     mesh.position.set( 0, 1, 0 );
                     mesh.castShadow = true;
                     mesh.receiveShadow = true;
@@ -95,12 +96,11 @@ let container, stats;
 
                     const size = box.copy(mesh.geometry.boundingBox).getSize(mesh.scale)
                     camera.position.set(0,-size.y*4,0)
-
-                    console.log(size);
-                    //camera.lookAt(mesh.position);
                     
                     scene.add( mesh );
 
+
+                    //Export STL file
                     let exporter = new STLExporter();
 
                     function exportASCII() {
@@ -126,7 +126,10 @@ let container, stats;
                         save( new Blob( [ text ], { type: 'text/plain' } ), filename );
 
                     }
+                    //#Export STL file end
 
+
+                    //eventHandlers
                     document.getElementById('rotateOnXnegative').addEventListener('click', rotateOnXnegative);
                     document.getElementById('rotateOnXpositive').addEventListener('click', rotateOnXpositive);
                     document.getElementById('rotateOnYnegative').addEventListener('click', rotateOnYnegative);
@@ -142,8 +145,10 @@ let container, stats;
                     });
 
                     document.getElementById('exportSTL').addEventListener('click', exportASCII);
+                    //#eventHandlers end
 
 
+                    //event functions
                     function rotateOnXnegative() {
                         mesh.rotation.x -= 0.1;
                     }
@@ -170,6 +175,7 @@ let container, stats;
                     function cameraZoomOut() {
                         camera.position.y -= 1;
                     }
+                    //#event functions end
 
                 }, false );
                 
@@ -188,7 +194,6 @@ let container, stats;
 
 				
 				// renderer
-
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -243,7 +248,7 @@ let container, stats;
 
             <input id="colorPicker" name="Color Picker" type="color"/>
 
-            <button id="exportSTL">Export STL</button>
+            <button id="exportSTL">Export File</button>
 
 	</body>
 </html>
